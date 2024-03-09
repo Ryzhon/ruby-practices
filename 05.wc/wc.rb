@@ -29,49 +29,39 @@ def format_output(filename, lines, words, bytes, options)
   output.join(' ')
 end
 
-def wc(files, options)
+def wc(inputs, options)
   total_lines = 0
   total_words = 0
   total_bytes = 0
 
-  files.each do |file|
-    contents = File.read(file)
-    lines = count_lines(contents)
-    words = count_words(contents)
-    bytes = count_bytes(contents)
-    puts format_output(file, lines, words, bytes, options)
+  inputs.each do |input|
+    content = input.respond_to?(:read) ? input.read : File.read(input)
+    lines = count_lines(content)
+    words = count_words(content)
+    bytes = count_bytes(content)
+    file_label = input.respond_to?(:read) ? '' : input
+    puts format_output(file_label, lines, words, bytes, options)
     total_lines += lines
     total_words += words
     total_bytes += bytes
   end
 
-  puts format_output('total', total_lines, total_words, total_bytes, options) if files.length > 1
+  return unless inputs.length > 1
+
+  puts format_output('total', total_lines, total_words, total_bytes, options)
 end
 
 options = { lines: false, words: false, bytes: false }
 
 opt = OptionParser.new
 
-opt.on('-l') do
-  options[:lines] = true
-end
+opt.on('-l') { options[:lines] = true }
 
-opt.on('-w') do
-  options[:words] = true
-end
+opt.on('-w') { options[:words] = true }
 
-opt.on('-c') do
-  options[:bytes] = true
-end
+opt.on('-c') { options[:bytes] = true }
 
 opt.parse!(ARGV)
 
-if ARGV.empty?
-  contents = $stdin.read
-  lines = count_lines(contents)
-  words = count_words(contents)
-  bytes = count_bytes(contents)
-  puts format_output(nil, lines, words, bytes, options)
-else
-  wc(ARGV, options)
-end
+inputs = ARGV.empty? ? [$stdin] : ARGV
+wc(inputs, options)
