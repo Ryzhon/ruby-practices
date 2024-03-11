@@ -10,6 +10,6 @@ class Directory
   end
 
   def total_blocks
-    @files.sum { |file| File.stat(file.path).blocks }
+    @files.sum { |file| File.stat(file.name).blocks }
   end
 end
